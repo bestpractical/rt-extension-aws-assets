@@ -1,0 +1,31 @@
+<%init>
+
+my ($result, $message);
+
+if ( $ARGSRef->{'AWSUpdate'} && $ARGSRef->{'AWSUpdate'} eq 'true' ) {
+
+    # Make sure we have required params
+    if ( $AssetObj->FirstCustomFieldValue('AWS ID')
+         && $AssetObj->FirstCustomFieldValue('Service Type')
+         && $AssetObj->FirstCustomFieldValue('Region') ) {
+
+        RT::Extension::AWS::Assets::ReloadFromAWS($AssetObj);
+        $result = 1;
+        $message = 'Asset information updated from AWS.';
+    }
+    else {
+        $result = 0;
+        $message = 'Set AWS ID, Service Type, and Region to load resource information from AWS.';
+    }
+}
+
+if ( $message ) {
+    push @{$ActionsRef}, $message;
+}
+
+</%init>
+<%args>
+$ARGSRef
+$AssetObj
+$ActionsRef
+</%args>

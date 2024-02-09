@@ -4,8 +4,78 @@
 use strict;
 use warnings;
 
-### after: use lib qw(@RT_LIB_PATH@);
-use lib qw(/opt/rt5/local/lib /opt/rt5/lib);
+package RT::AWS::Assets::Run;
 
-use RT::Interface::CLI qw(Init GetCurrentUser);
-my %opt;
+BEGIN {
+### after:     use lib qw(@RT_LIB_PATH@);
+use lib '/opt/rt5/local/lib /opt/rt5/lib';
+use RT;
+RT::LoadConfig();
+RT::Init();
+}
+
+use RT::Interface::CLI  qw(GetCurrentUser loc);
+use RT::Extension::AWS::Assets;
+
+__PACKAGE__->run(@ARGV) unless caller;
+
+sub run{
+    my ($class, @args) = @_;
+
+    my %args = $class->process_args(@args);
+
+    if ( $args{insert} ) {
+        my ($reservations, $token);
+
+        do {
+            ($reservations, $token) =
+                RT::Extension::AWS::Assets::FetchMultipleAssetsFromAWS(
+                    Region => $args{'region'},
+                    ServiceType => $args{'type'},
+                    NextToken => $token );
+
+                RT::Extension::AWS::Assets::InsertAWSAssets(
+                    Reservations => $reservations,
+                    Region => $args{'region'},
+                    ServiceType => $args{'type'},
+                    CurrentUser => GetCurrentUser() );
+
+        } while ( $token )
+    }
+
+    return;
+}
+
+sub process_args {
+    require Getopt::Long;
+    local @ARGV = @_;
+
+    my %opt;
+    Getopt::Long::GetOptions( \%opt, 'help|h', 'insert|i', 'update|u', 'catalog=s', 'type=s', 'region=s', 'debug|d' );
+
+    if ( delete $opt{help} ) {
+        require Pod::Usage;
+        Pod::Usage::pod2usage( { verbose => 2 } );
+        exit;
+    }
+
+    return %opt;
+}
+
+1;
+
+__END__
+
+=head1 NAME
+
+rt-import-aws-assets - import asset data from AWS
+
+=head1 SYNOPSIS
+
+    rt-import-aws-assets
+
+=head1 DESCRIPTION
+
+Access your AWS account using the aws-cli utility to pull in data and
+add it to RT assets.
+
