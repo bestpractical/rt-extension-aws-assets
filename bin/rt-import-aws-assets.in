@@ -43,6 +43,25 @@ sub run{
         } while ( $token )
     }
 
+    if ( $args{update} ) {
+        my ($reservations, $token);
+
+        do {
+            ($reservations, $token) =
+                RT::Extension::AWS::Assets::FetchMultipleAssetsFromAWS(
+                    Region => $args{'region'},
+                    ServiceType => $args{'type'},
+                    NextToken => $token );
+
+                RT::Extension::AWS::Assets::UpdateAWSAssets(
+                    Reservations => $reservations,
+                    Region => $args{'region'},
+                    ServiceType => $args{'type'},
+                    CurrentUser => GetCurrentUser() );
+
+        } while ( $token )
+    }
+
     return;
 }
 
@@ -56,6 +75,11 @@ sub process_args {
     if ( delete $opt{help} ) {
         require Pod::Usage;
         Pod::Usage::pod2usage( { verbose => 2 } );
+        exit;
+    }
+
+    if ( $opt{'insert'} && $opt{'update'} ) {
+        print "Running insert and update at the same time is not supported, exiting.\n";
         exit;
     }
 

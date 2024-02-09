@@ -268,6 +268,36 @@ sub InsertAWSAssets {
     return;
 }
 
+sub UpdateAWSAssets {
+    my %args = (
+        @_
+    );
+
+    my $catalog = RT->Config->Get('AWSAssetsInstanceCatalog');
+
+    for my $reservation ( @{ $args{'Reservations'} } ) {
+        my $instance = $reservation->Instances->[0];
+
+        # Load as system user to find all possible assets to avoid
+        # trying to create a duplicate CurrentUser might not be able to see
+        my $assets = RT::Assets->new( RT->SystemUser );
+        my ($ok, $msg) = $assets->FromSQL("Catalog = '" . $catalog .
+            "' AND 'CF.{AWS ID}' = '" . $instance->InstanceId . "'");
+
+        # AWS ID is unique, so there should only ever be 1 or 0
+        my $asset = $assets->First;
+
+        unless ( $asset and $asset->Id ) {
+            RT->Logger->debug("No asset found for " . $instance->InstanceId . ", skipping");
+            next;
+        }
+
+        UpdateAWSAsset($asset, $instance);
+        RT->Logger->debug('Updated asset ' . $asset->Id . ' ' . $asset->Name);
+    }
+    return;
+}
+
 # We don't have a catalog in the empty asset object when we want to
 # load the CFs, so create a custom version of the loader that accepts
 # catalog as a parameter.
