@@ -25,17 +25,17 @@ sub run{
     my %args = $class->process_args(@args);
 
     if ( $args{insert} ) {
-        my ($reservations, $token);
+        my ($aws_resources, $token);
 
         do {
-            ($reservations, $token) =
+            ($aws_resources, $token) =
                 RT::Extension::AWS::Assets::FetchMultipleAssetsFromAWS(
                     Region => $args{'region'},
                     ServiceType => $args{'type'},
-                    NextToken => $token );
+                    Token => $token );
 
                 RT::Extension::AWS::Assets::InsertAWSAssets(
-                    Reservations => $reservations,
+                    AWSResources => $aws_resources,
                     Region => $args{'region'},
                     ServiceType => $args{'type'},
                     CurrentUser => GetCurrentUser() );
@@ -44,17 +44,17 @@ sub run{
     }
 
     if ( $args{update} ) {
-        my ($reservations, $token);
+        my ($aws_resources, $token);
 
         do {
-            ($reservations, $token) =
+            ($aws_resources, $token) =
                 RT::Extension::AWS::Assets::FetchMultipleAssetsFromAWS(
                     Region => $args{'region'},
                     ServiceType => $args{'type'},
-                    NextToken => $token );
+                    Token => $token );
 
                 RT::Extension::AWS::Assets::UpdateAWSAssets(
-                    Reservations => $reservations,
+                    AWSResources => $aws_resources,
                     Region => $args{'region'},
                     ServiceType => $args{'type'},
                     CurrentUser => GetCurrentUser() );
