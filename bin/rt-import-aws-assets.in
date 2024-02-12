@@ -32,12 +32,14 @@ sub run{
                 RT::Extension::AWS::Assets::FetchMultipleAssetsFromAWS(
                     Region => $args{'region'},
                     ServiceType => $args{'type'},
+                    ReservedInstances => $args{'reserved'},
                     Token => $token );
 
                 RT::Extension::AWS::Assets::InsertAWSAssets(
                     AWSResources => $aws_resources,
                     Region => $args{'region'},
                     ServiceType => $args{'type'},
+                    ReservedInstances => $args{'reserved'},
                     CurrentUser => GetCurrentUser() );
 
         } while ( $token )
@@ -51,12 +53,14 @@ sub run{
                 RT::Extension::AWS::Assets::FetchMultipleAssetsFromAWS(
                     Region => $args{'region'},
                     ServiceType => $args{'type'},
+                    ReservedInstances => $args{'reserved'},
                     Token => $token );
 
                 RT::Extension::AWS::Assets::UpdateAWSAssets(
                     AWSResources => $aws_resources,
                     Region => $args{'region'},
                     ServiceType => $args{'type'},
+                    ReservedInstances => $args{'reserved'},
                     CurrentUser => GetCurrentUser() );
 
         } while ( $token )
@@ -70,7 +74,7 @@ sub process_args {
     local @ARGV = @_;
 
     my %opt;
-    Getopt::Long::GetOptions( \%opt, 'help|h', 'insert|i', 'update|u', 'catalog=s', 'type=s', 'region=s', 'debug|d' );
+    Getopt::Long::GetOptions( \%opt, 'help|h', 'insert|i', 'update|u', 'catalog=s', 'type=s', 'reserved', 'region=s', 'debug|d' );
 
     if ( delete $opt{help} ) {
         require Pod::Usage;

@@ -128,34 +128,57 @@ sub FetchMultipleAssetsFromAWS {
     my $token;
 
     if ( $args{'ServiceType'} eq 'EC2' ) {
-        eval {
-            my $service = Paws->service($args{'ServiceType'}, credentials => $credentials, region => $args{'Region'});
+        if ( $args{'ReservedInstances'} ) {
+            eval {
+                my $service = Paws->service($args{'ServiceType'}, credentials => $credentials, region => $args{'Region'});
 
-            if ( $args{'Token'} ) {
-                $res = $service->DescribeInstances(MaxResults => $args{'MaxResults'}, NextToken => $args{'Token'});
-            }
-            else {
-                $res = $service->DescribeInstances(MaxResults => $args{'MaxResults'});
-            }
+                # No paging for reserved instance API
+                $res = $service->DescribeReservedInstances();
+                $aws_resources = $res->ReservedInstances;
+            };
+        }
+        else {
+            eval {
+                my $service = Paws->service($args{'ServiceType'}, credentials => $credentials, region => $args{'Region'});
 
-            $aws_resources = $res->Reservations;
-            $token = $res->NextToken;
-        };
+                if ( $args{'Token'} ) {
+                    $res = $service->DescribeInstances(MaxResults => $args{'MaxResults'}, NextToken => $args{'Token'});
+                }
+                else {
+                    $res = $service->DescribeInstances(MaxResults => $args{'MaxResults'});
+                }
+
+                $aws_resources = $res->Reservations;
+                $token = $res->NextToken;
+            };
+        }
     }
     elsif ( $args{'ServiceType'} eq 'RDS' ) {
-        eval {
-            my $service = Paws->service($args{'ServiceType'}, credentials => $credentials, region => $args{'Region'});
+        if ( $args{'ReservedInstances'} ) {
+            eval {
+                my $service = Paws->service($args{'ServiceType'}, credentials => $credentials, region => $args{'Region'});
 
-            if ( $args{'Marker'} ) {
-                $res = $service->DescribeDBInstances(MaxRecords => $args{'MaxResults'}, Marker => $args{'Token'});
-            }
-            else {
-                $res = $service->DescribeDBInstances(MaxRecords => $args{'MaxResults'});
-            }
+                # The RDS version does have paging, but leaving it out for consistency with EC2
+                # Set Max to the Max allowed. Will need to update when we go over 100 in a region
+                $res = $service->DescribeReservedDBInstances(MaxRecords => 100);
+                $aws_resources = $res->ReservedDBInstances;
+            };
+        }
+        else {
+            eval {
+                my $service = Paws->service($args{'ServiceType'}, credentials => $credentials, region => $args{'Region'});
 
-            $aws_resources = $res->DBInstances;
-            $token = $res->Marker;
-        };
+                if ( $args{'Marker'} ) {
+                    $res = $service->DescribeDBInstances(MaxRecords => $args{'MaxResults'}, Marker => $args{'Token'});
+                }
+                else {
+                    $res = $service->DescribeDBInstances(MaxRecords => $args{'MaxResults'});
+                }
+
+                $aws_resources = $res->DBInstances;
+                $token = $res->Marker;
+            };
+        }
     }
 
     if ( $@ ) {
@@ -172,11 +195,18 @@ Accept a loaded RT::Asset object and a Paws Instance object.
 =cut
 
 sub UpdateAWSAsset {
-    my $asset = shift;
-    my $paws_obj = shift;
-    my $service = shift;
+    my %args = @_;
+    my $asset = $args{'AssetObj'};
+    my $paws_obj = $args{'PawsObj'};
+    my $service = $args{'Service'};
+    my $reserved = $args{'ReservedInstances'};
 
-    foreach my $aws_value ( @{ RT->Config->Get('AWSAssetsUpdateFields')->{$service} } ) {
+    # For looking up the field mapping, use RI (Reserved Instances) for the service
+    # rather than the AWS service the RI is for.
+    my $config_key = $service;
+    $config_key .= ':RI' if $reserved;
+
+    foreach my $aws_value ( @{ RT->Config->Get('AWSAssetsUpdateFields')->{$config_key} } ) {
 
         my $submethod;
         my $cf_name = $aws_value;
@@ -187,11 +217,33 @@ sub UpdateAWSAsset {
 
         # Fixup some special cases
         if ( $service eq 'RDS' ) {
-            $method = 'DBInstanceIdentifier' if $cf_name eq 'Name';
-            $method = 'DBInstanceClass' if $cf_name eq 'Instance Type';
+            $method = 'DBInstanceIdentifier' if ( $cf_name eq 'Name' );
+            $method = 'DBInstanceClass' if ( $cf_name eq 'Instance Type' );
         }
 
+        if ( $reserved ) {
+            $method = 'ProductDescription' if ( $cf_name eq 'Platform' );
+            $method = 'InstanceTenancy' if ( $cf_name eq 'Tenancy' );
+            $method = 'Start' if ( $service eq 'EC2' && $cf_name eq 'Reservation Start' );
+            $method = 'StartTime' if ( $service eq 'RDS' && $cf_name eq 'Reservation Start' );
+            $method = 'End' if ( $cf_name eq 'Reservation End' );
+            $method = 'InstanceType' if ( $service eq 'EC2' && $cf_name eq 'Name' );
+            $method = 'ReservedDBInstanceId' if ( $service eq 'RDS' && $cf_name eq 'Name' );
+        }
+
+        # Fixups (mostly) done, start setting values
         my ($ret, $msg);
+
+        # RDS RIs don't provide EndTime as a value via the API, even though EC2 does
+        # Calculate it here using Start and Duration.
+        if ( $reserved && $service eq 'RDS' && $cf_name eq 'Reservation End' ) {
+            my $end = RT::Date->new(RT->SystemUser);
+            $end->Set( Format => 'unknown', Value => $paws_obj->StartTime );
+            $end->AddSeconds($paws_obj->Duration);
+
+            ($ret, $msg) = $asset->AddCustomFieldValue( Field => $cf_name, Value => $end->ISO );
+            next;
+        }
 
         if ( $submethod && ( $submethod eq 'Tags' || $submethod eq 'TagList' ) ) {
             foreach my $tag ( @{ $paws_obj->$submethod } ) {
@@ -208,7 +260,7 @@ sub UpdateAWSAsset {
                 }
             }
         }
-        elsif ( $method eq 'DBInstanceIdentifier' ) {
+        elsif ( $cf_name eq 'Name' ) {
             # Name isn't a CF but a core asset field
             ($ret, $msg) = $asset->SetName($paws_obj->$method);
         }
@@ -243,25 +295,41 @@ sub InsertAWSAssets {
     );
 
     my $catalog = RT->Config->Get('AWSAssetsInstanceCatalog');
+    $catalog = RT->Config->Get('AWSAssetsReservedInstancesCatalog') if $args{'ReservedInstances'};
+
+    my $asset_id_cf = 'AWS ID';
+    $asset_id_cf = 'AWS Reserved Instance ID' if $args{'ReservedInstances'};
 
     for my $resource ( @{ $args{'AWSResources'} } ) {
         my $resource_id;
         my $instance;
-
+warn "got is: " . p($resource);
         if ( $args{'ServiceType'} eq 'EC2' ) {
-            $instance = $resource->Instances->[0];
-            $resource_id = $resource->Instances->[0]->InstanceId;
+            if ( $args{'ReservedInstances'} ) {
+                $instance = $resource;
+                $resource_id = $resource->ReservedInstancesId;
+            }
+            else {
+                $instance = $resource->Instances->[0];
+                $resource_id = $resource->Instances->[0]->InstanceId;
+            }
         }
         elsif ( $args{'ServiceType'} eq 'RDS' ) {
-            $instance = $resource;
-            $resource_id = $resource->DbiResourceId;
+            if ( $args{'ReservedInstances'} ) {
+                $instance = $resource;
+                $resource_id = $resource->LeaseId;
+            }
+            else {
+                $instance = $resource;
+                $resource_id = $resource->DbiResourceId;
+            }
         }
 
         # Load as system user to find all possible assets to avoid
         # trying to create a duplicate CurrentUser might not be able to see
         my $assets = RT::Assets->new( RT->SystemUser );
         my ($ok, $msg) = $assets->FromSQL("Catalog = '" . $catalog .
-            "' AND 'CF.{AWS ID}' = '" . $resource_id . "'");
+            "' AND 'CF.{$asset_id_cf}' = '" . $resource_id . "'");
 
         # AWS ID is unique, so there should only ever be 1 or 0
         my $asset = $assets->First;
@@ -275,7 +343,14 @@ sub InsertAWSAssets {
         # Try to create a new asset with AWS ID, Region, Service Type
         my $new_asset = RT::Asset->new($args{'CurrentUser'});
 
-        my $aws_id_cf = LoadCustomFieldByIdentifier($new_asset, 'AWS ID', $catalog, $args{'CurrentUser'});
+        my $aws_id_cf;
+        if ( $args{'ReservedInstances'} ) {
+            $aws_id_cf = LoadCustomFieldByIdentifier($new_asset, 'AWS Reserved Instance ID', $catalog, $args{'CurrentUser'});
+        }
+        else {
+            $aws_id_cf = LoadCustomFieldByIdentifier($new_asset, 'AWS ID', $catalog, $args{'CurrentUser'});
+        }
+
         unless ( $aws_id_cf && $aws_id_cf->Id ) {
             RT->Logger->error('Unable to load AWS ID CF for asset');
             next;
@@ -294,7 +369,7 @@ sub InsertAWSAssets {
         }
 
         ($ok, $msg) = $new_asset->Create(
-            Catalog => RT->Config->Get('AWSAssetsInstanceCatalog'),
+            Catalog => $catalog,
             'CustomField-' . $aws_id_cf->Id => $resource_id,
             'CustomField-' . $region_cf->Id => $args{'Region'},
             'CustomField-' . $service_type_cf->Id => $args{'ServiceType'},
@@ -309,7 +384,8 @@ sub InsertAWSAssets {
         }
 
         # Call UpdateAWSAsset to load remaining CFs
-        UpdateAWSAsset($new_asset, $instance, $args{'ServiceType'});
+        UpdateAWSAsset( AssetObj => $new_asset, PawsObj => $instance,
+            Service => $args{'ServiceType'}, ReservedInstances => $args{'ReservedInstances'});
     }
     return;
 }
@@ -320,6 +396,7 @@ sub UpdateAWSAssets {
     );
 
     my $catalog = RT->Config->Get('AWSAssetsInstanceCatalog');
+    $catalog = RT->Config->Get('AWSAssetsReservedInstancesCatalog') if $args{'ReservedInstances'};
 
     for my $resource ( @{ $args{'AWSResources'} } ) {
         my $resource_id;
@@ -348,7 +425,8 @@ sub UpdateAWSAssets {
             next;
         }
 
-        UpdateAWSAsset($asset, $instance, $args{'ServiceType'});
+        UpdateAWSAsset( AssetObj => $asset, PawsObj => $instance,
+            Service => $args{'ServiceType'}, ReservedInstances => $args{'ReservedInstances'});
         RT->Logger->debug('Updated asset ' . $asset->Id . ' ' . $asset->Name);
     }
     return;
