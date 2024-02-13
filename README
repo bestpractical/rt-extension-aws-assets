@@ -23,6 +23,9 @@ INSTALLATION
 
     Restart your webserver
 
+METHODS
+    Accept a loaded RT::Asset object and a Paws Instance object.
+
 AUTHOR
     All bugs should be reported via email to
         bug-RT-Extension-AWS-Assets@rt.cpan.org

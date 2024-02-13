@@ -16,8 +16,10 @@ meta-spec:
 name: RT-Extension-AWS-Assets
 no_index:
   directory:
+    - html
     - inc
 requires:
+  Paws: 0
   perl: 5.10.1
 resources:
   license: http://opensource.org/licenses/gpl-license.php
