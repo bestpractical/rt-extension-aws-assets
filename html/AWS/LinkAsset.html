@@ -60,7 +60,12 @@ $Query = "Catalog = '" . RT->Config->Get('AWSAssetsInstanceCatalog')
     . "' AND 'CF.{Instance Type}' = '" . $AssetObj->FirstCustomFieldValue('Instance Type') . "'";
 
 if ( $AssetObj->FirstCustomFieldValue('Service Type') eq 'RDS' ) {
-    $Query .= " AND 'CF.{Engine}' = '" . $AssetObj->FirstCustomFieldValue('Product Description') . "'";
+    my $engine = $AssetObj->FirstCustomFieldValue('Product Description');
+
+    # Fix inconsistent postgresql vs. postgres
+    $engine = 'postgres' if $engine eq 'postgresql';
+
+    $Query .= " AND 'CF.{Engine}' = '$engine'";
 }
 
 my $assets = RT::Assets->new( $session{'CurrentUser'} );
