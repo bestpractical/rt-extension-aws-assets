@@ -10,12 +10,9 @@ BEGIN {
 ### after:     use lib qw(@RT_LIB_PATH@);
 use lib '/opt/rt5/local/lib /opt/rt5/lib';
 use RT;
-RT::LoadConfig();
-RT::Init();
 }
 
 use RT::Interface::CLI  qw(GetCurrentUser loc);
-use RT::Extension::AWS::Assets;
 
 __PACKAGE__->run(@ARGV) unless caller;
 
@@ -23,6 +20,7 @@ sub run{
     my ($class, @args) = @_;
 
     my %args = $class->process_args(@args);
+    require RT::Extension::AWS::Assets;
 
     if ( $args{insert} ) {
         my ($aws_resources, $token);
@@ -76,7 +74,7 @@ sub process_args {
     local @ARGV = @_;
 
     my %opt;
-    Getopt::Long::GetOptions( \%opt, 'help|h', 'insert|i', 'update|u', 'catalog=s', 'type=s', 'reserved', 'region=s', 'results=i', 'debug|d' );
+    RT::Interface::CLI::Init( \%opt, 'help|h', 'insert|i', 'update|u', 'catalog=s', 'type=s', 'reserved', 'region=s', 'results=i', 'debug|d' );
 
     if ( delete $opt{help} ) {
         require Pod::Usage;
