@@ -153,7 +153,7 @@ sub FetchSingleAssetFromAWS {
 
 sub FetchMultipleAssetsFromAWS {
     my %args = (
-        MaxResults => 20,
+        MaxResults => 100,
         Token => undef,
         @_,
     );
