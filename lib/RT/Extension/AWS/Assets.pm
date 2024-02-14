@@ -214,7 +214,7 @@ sub FetchMultipleAssetsFromAWS {
             eval {
                 my $service = Paws->service($args{'ServiceType'}, credentials => $credentials, region => $args{'Region'});
 
-                if ( $args{'Marker'} ) {
+                if ( $args{'Token'} ) {
                     $res = $service->DescribeDBInstances(MaxRecords => $args{'MaxResults'}, Marker => $args{'Token'});
                 }
                 else {
