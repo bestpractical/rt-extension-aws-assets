@@ -74,7 +74,7 @@ sub process_args {
     local @ARGV = @_;
 
     my %opt;
-    RT::Interface::CLI::Init( \%opt, 'help|h', 'insert|i', 'update|u', 'catalog=s', 'type=s', 'reserved', 'region=s', 'results=i', 'debug|d' );
+    RT::Interface::CLI::Init( \%opt, 'help|h', 'insert|i', 'update|u', 'type=s', 'reserved', 'region=s', 'results=i', 'debug|d' );
 
     if ( delete $opt{help} ) {
         require Pod::Usage;
@@ -104,10 +104,53 @@ rt-import-aws-assets - import asset data from AWS
 
 =head1 SYNOPSIS
 
-    rt-import-aws-assets
+    rt-import-aws-assets --region='us-east-1' --type=EC2 --insert
 
 =head1 DESCRIPTION
 
-Access your AWS account using the aws-cli utility to pull in data and
-add it to RT assets.
+This utility pulls data from the configured AWS account and inserts
+or updates asset records in Request Tracker.
 
+See the main extension documentation for key configuration options
+including the asset catalogs to use.
+
+=head1 OPTIONS
+
+=over
+
+=item B<--region>
+
+Required. The region from which to pull AWS resource information.
+
+=item B<--type>
+
+Required. The AWS service to use when fetching information.
+
+Currently supported: EC2, RDS
+
+=item B<--insert>
+
+When fetching records, create new records for any resources that don't
+exist. Existing records are skipped.
+
+=item B<--update>
+
+Search for existing assets and update configured fields from AWS data.
+
+=item B<--reserved>
+
+Retrieve data for reserved instances for the current C<--type>.
+
+=item B<--results>
+
+The number of results to fetch per request to the AWS API. The minimum is 20,
+maximum is 100. Some AWS APIs do not support paging so this is ignored.
+
+=item B<--debug>
+
+Override the RT log settings and show log messages in the terminal at the
+debug level.
+
+=back
+
+=cut

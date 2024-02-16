@@ -47,6 +47,112 @@ Add this line:
 
 =back
 
+=head1 USAGE
+
+This extension is designed to fetch data for EC2 and RDS instances in
+AWS and create RT asset records for each. It also can fetch information
+on reserved instances and create assets records for these, in a different
+catalog.
+
+Once you have fetched the above information, you can use linking in RT
+to associate an AWS resource, like an AWS EC2 instance, with a reservation
+you have purchased. The extension provides a page in the RT web UI at
+C<https://myrt.com/AWS/LinkAsset.html?id=123> to match AWS resources
+with reservations based on the service, instance type, and region.
+
+=head1 CONFIGURATION
+
+The following configuration options need to be set to use this
+extension.
+
+=head2 AWS API Credentials
+
+In the AWS IAM console, create keys for external access and set:
+
+    Set($AWS_ACCESS_KEY, 'foo');
+    Set($AWS_SECRET_KEY, 'barbaz');
+
+=head2 Asset Catalogs
+
+Set the following with the names of the catalogs to use for AWS
+resources (like EC2 and RDS instances) and reserved instances.
+
+    Set($AWSAssetsInstanceCatalog, 'AWS Resources');
+    Set($AWSAssetsReservedInstancesCatalog, 'AWS Reserved Instances');
+
+=head2 Data Field Mapping
+
+Information from AWS resources is stored mostly in custom fields on
+assets in RT. Use this configuration to define which custom fields to
+populate. The names mostly map to the name provided by AWS in the API.
+
+The EC2 and RDS keys are for AWS resources. The EC2:RI and RDS:RI are
+for reserved instances.
+
+    Set($AWSAssetsUpdateFields, {
+        'EC2' => ['Instance Type', 'Platform', 'Placement:Tenancy', 'Placement:Availability Zone', 'Tags:Name', 'Tags:customer'],
+        'RDS' => ['Instance Type', 'Engine', 'Allocated Storage', 'Availability Zone', 'Name', 'MultiAZ', 'TagList:customer'],
+        'EC2:RI' => ['Instance Type', 'Platform', 'Tenancy', 'Reservation Start', 'Reservation End', 'Duration', 'Offering Class', 'Offering Type', 'Name', 'Product Description', 'State'],
+        'RDS:RI' => ['Instance Type', 'Platform', 'Reservation Start', 'Reservation End', 'Duration', 'Offering Type', 'Name', 'MultiAZ', 'Product Description', 'State'],
+    }
+    );
+
+=head2 Asset Linking Page
+
+This format defines the columns shown on the reservation linking page.
+
+Set($AWSAssetsLinkFormat,
+    q{'<a href="__WebPath__/Asset/Display.html?id=__id__">__id__</a>/TITLE:#'}
+    .q{,'<a href="__WebHomePath__/Asset/Display.html?id=__id__">__Name__</a>/TITLE:Name'}
+    .q{,'__CustomFieldView.{AWS ID}__'}
+    .q{,'__CustomFieldView.{customer}__'}
+    .q{,'__CustomFieldView.{Instance Type}__'}
+    .q{,'__CustomFieldView.{Engine}__'}
+);
+
+To link to this page, create a saved search to find any unlinked reserved
+instance records. A search like this should find these records:
+
+    Catalog = 'AWS Reserved Instances' AND DependedOnBy IS NULL AND ( CF.{State} = 'payment-pending' OR CF.{State} = 'active' )
+
+After creating the search, go to the Advanced page and add this line to the Format:
+
+'<a href="__WebPath__/AWS/LinkAsset.html?id=__id__" target="_blank">Link to Resource</a>/TITLE:Link to Resource'
+
+That will show a column linking to the reservation linking page.
+
+=head2 AWS IDs Used for Assets
+
+AWS uses different identifiers with different services. This extension uses
+the below mapping of AWS value to RT custom fields on assets. When a
+new asset is created, the named custom fields must exist and they
+will be set. On update, this value is used to load new data from
+the existing assets.
+
+=over
+
+=item EC2
+
+AWS Value: "Instance ID"
+RT Asset CF: "AWS ID"
+
+=item RDS
+
+AWS Value: "DBI Resource ID"
+RT Asset CF: "AWS ID"
+
+=item EC2 Reserved Instance
+
+AWS Value: "Reserved Instances ID"
+RT Asset CF: "AWS Reserved Instance ID"
+
+=item RDS Reserved Instance
+
+AWS Value: "Lease ID"
+RT Asset CF: "AWS Reserved Instance ID"
+
+=back
+
 =head1 METHODS
 
 =cut
