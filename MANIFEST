@@ -1,5 +1,8 @@
 bin/rt-import-aws-assets.in
+bin/rt-unlink-retired-reservations.in
 Changes
+etc/AWSAssets_Config.pm
+etc/sample-initialdata.json
 html/AWS/LinkAsset.html
 html/Callbacks/RT-Extension-AWS-Assets/Asset/Display.html/BeforeProcessArguments
 html/Callbacks/RT-Extension-AWS-Assets/Elements/Tabs/Privileged

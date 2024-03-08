@@ -31,7 +31,7 @@ substitute(
            {
         sufix => '.in'
     },
-           qw(bin/rt-import-aws-assets),
+           qw(bin/rt-import-aws-assets bin/rt-unlink-retired-reservations),
 );
 
 sign;
