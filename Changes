@@ -1,4 +1,8 @@
 Revision history for RT-Extension-AWS-Assets
 
-0.01 [Release Date]
+0.02 2024-03-08
+ - Add asset lifecycle config for reservations
+ - Add script to unlink retired reservations
+
+0.01 2024-02-13
  - Initial version

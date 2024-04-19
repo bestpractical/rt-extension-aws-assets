@@ -12,3 +12,5 @@ pod2htm*.tmp
 /MYMETA.*
 /t/tmp
 /xt/tmp
+rt-import-aws-assets
+rt-unlink-retired-reservations
