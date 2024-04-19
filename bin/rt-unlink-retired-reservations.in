@@ -33,6 +33,15 @@ sub run{
 
             RT->Logger->error("Unable to delete link for asset " . $asset->Id . ", $msg") unless $ok;
         }
+
+        # The search finds assets where Reservation End has passed, so also
+        # set State to retired. This can also get set by re-syncing with AWS.
+        unless ( $asset->FirstCustomFieldValue('State') eq 'retired' ) {
+            my ($ok, $msg) = $asset->AddCustomFieldValue( Field => 'State', Value => 'retired' );
+
+            RT->Logger->error("Unable to set State for asset " . $asset->Id . ", $msg") unless $ok;
+        }
+
     }
 
     return;
@@ -76,6 +85,8 @@ past the end date, but are still linked to an AWS resource asset:
 
 It unlinks all found assets so it's clear those AWS resources may need a new
 reservation.
+
+It also sets the State custom field to 'retired' if it is not already that value.
 
 =head1 OPTIONS
 
