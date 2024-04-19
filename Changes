@@ -1,5 +1,9 @@
 Revision history for RT-Extension-AWS-Assets
 
+0.03 2024-04-19
+ - In rt-unlink-retired-reservations, also set State to retired if that is not
+   the current value.
+
 0.02 2024-03-08
  - Add asset lifecycle config for reservations
  - Add script to unlink retired reservations
