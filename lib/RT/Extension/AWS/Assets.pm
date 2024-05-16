@@ -434,7 +434,7 @@ sub UpdateAWSAsset {
         }
 
         unless ( $ret ) {
-            RT->Logger->error("RT-Extension-AWS-Assets: unable to update CF $cf_name: $msg");
+            RT->Logger->error("RT-Extension-AWS-Assets: On asset " . $asset->Id . " unable to update CF $cf_name: $msg");
         }
     }
 
