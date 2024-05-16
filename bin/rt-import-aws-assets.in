@@ -74,7 +74,7 @@ sub process_args {
     local @ARGV = @_;
 
     my %opt;
-    RT::Interface::CLI::Init( \%opt, 'help|h', 'insert|i', 'update|u', 'type=s', 'reserved', 'region=s', 'results=i', 'debug|d' );
+    RT::Interface::CLI::Init( \%opt, 'help|h', 'insert|i', 'update|u', 'type=s', 'reserved', 'region=s', 'results=i' );
 
     if ( delete $opt{help} ) {
         require Pod::Usage;
