@@ -3,7 +3,7 @@
 # Assets only
 return unless $Path =~ m{^/Asset/};
 my $id = $DECODED_ARGS->{'id'};
-return unless $id;
+return unless $id && $id =~ /^\d+$/;
 
 my $asset = LoadAsset($id);
 return unless $asset->Id;
