@@ -47,12 +47,12 @@
    "Catalogs" : [
       {
          "Description" : "AWS Resources",
-         "Lifecycle" : "assets",
+         "Lifecycle" : "aws-assets",
          "Name" : "AWS Resources"
       },
       {
          "Description" : "",
-         "Lifecycle" : "assets",
+         "Lifecycle" : "aws-reservations",
          "Name" : "AWS Reserved Instances"
       }
    ],
