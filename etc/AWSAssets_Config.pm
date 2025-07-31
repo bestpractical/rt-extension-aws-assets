@@ -10,6 +10,7 @@ Set(%Lifecycles,
             'not-found', # loc
         ],
         inactive => [ 
+            'removed', # loc
             'deleted' # loc
         ],
 
@@ -19,10 +20,11 @@ Set(%Lifecycles,
 
         transitions => {
             ''        => [qw(new running)],
-            new       => [qw(running not-found deleted)],
-            running   => [qw(new not-found deleted)],
-            'not-found' => [qw(new running deleted)],
-            deleted   => [qw(new running)],
+            new       => [qw(running not-found removed deleted)],
+            running   => [qw(new not-found removed deleted)],
+            'not-found' => [qw(new running removed deleted)],
+            removed   => [qw(new running deleted)],
+            deleted   => [qw(new running removed)],
         },
         rights => {
             '* -> *'        => 'ModifyAsset',
