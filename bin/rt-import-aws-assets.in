@@ -8,7 +8,7 @@ package RT::AWS::Assets::Run;
 
 BEGIN {
 ### after:     use lib qw(@RT_LIB_PATH@);
-use lib '/opt/rt5/local/lib /opt/rt5/lib';
+use lib '/opt/rt6/local/lib /opt/rt6/lib';
 use RT;
 }
 

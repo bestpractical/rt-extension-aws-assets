@@ -19,7 +19,7 @@ Manage AWS resources in RT assets
 
 =head1 RT VERSION
 
-Works with RT 5.0
+Works with RT 6.0
 
 =head1 INSTALLATION
 
@@ -41,7 +41,7 @@ Add this line:
 
 =item Clear your mason cache
 
-    rm -rf /opt/rt5/var/mason_data/obj
+    rm -rf /opt/rt6/var/mason_data/obj
 
 =item Restart your webserver
 

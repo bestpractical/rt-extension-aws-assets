@@ -7,12 +7,12 @@ repository 'https://github.com/bestpractical/rt-extension-aws-assets';
 
 requires('Paws');
 
-requires_rt '5.0.0';
-rt_too_new '5.2.0';
+requires_rt '6.0.0';
+rt_too_new '6.2.0';
 
 my ($lp) = ($INC{'RT.pm'} =~ /^(.*)[\\\/]/);
 my $lib_path = join( ' ', "$RT::LocalPath/lib", $lp );
-my $bin_path = $RT::BinPath || "$RT::BasePath/bin" || "/opt/rt5/bin";
+my $bin_path = $RT::BinPath || "$RT::BasePath/bin" || "/opt/rt6/bin";
 
 # Straight from perldoc perlvar
 use Config;

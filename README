@@ -5,7 +5,7 @@ DESCRIPTION
     Manage AWS resources in RT assets
 
 RT VERSION
-    Works with RT 5.0
+    Works with RT 6.0
 
 INSTALLATION
     perl Makefile.PL
@@ -19,7 +19,7 @@ INSTALLATION
             Plugin('RT::Extension::AWS::Assets');
 
     Clear your mason cache
-            rm -rf /opt/rt5/var/mason_data/obj
+            rm -rf /opt/rt6/var/mason_data/obj
 
     Restart your webserver
 

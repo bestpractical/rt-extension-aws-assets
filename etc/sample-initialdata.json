@@ -1,21 +1,6 @@
 {
    "Attributes" : [
       {
-         "Content" : {
-            "Format" : "'<a href=\"__WebPath__/Asset/Display.html?id=__id__\">__id__</a>/TITLE:#',\n'<a href=\"__WebHomePath__/Asset/Display.html?id=__id__\">__Name__</a>/TITLE:Name',\nStatus,\nCatalog,\nOwner,\n'__ActiveTickets__ __InactiveTickets__/TITLE:Related tickets',\n'__NEWLINE__',\n'__NBSP__',\n'<small>__Description__</small>',\n'<small>__CreatedRelative__</small>',\n'<small>__LastUpdatedRelative__</small>',\n'<small>__Contacts__</small>'",
-            "ObjectType" : "",
-            "Order" : "ASC|ASC|ASC|ASC",
-            "OrderBy" : "Name|||",
-            "Query" : "Catalog = 'AWS Resources' AND Status = '__Active__'",
-            "RowsPerPage" : "50",
-            "SearchType" : "Asset"
-         },
-         "ContentType" : "storable",
-         "Description" : "Active Assets",
-         "Name" : "SavedSearch",
-         "Object" : "RT::System"
-      },
-      {
          "Content" : {},
          "ContentType" : "storable",
          "Name" : "CustomFieldDefaultValues",
@@ -31,20 +16,31 @@
          "Name" : "DefaultValues",
          "Object" : "General",
          "ObjectType" : "RT::Queue"
+      }
+   ],
+   "SavedSearches" : [
+      {
+         "Content" : {
+            "Format" : "'<a href=\"__WebPath__/Asset/Display.html?id=__id__\">__id__</a>/TITLE:#',\n'<a href=\"__WebHomePath__/Asset/Display.html?id=__id__\">__Name__</a>/TITLE:Name',\nStatus,\nCatalog,\nOwner,\n'__ActiveTickets__ __InactiveTickets__/TITLE:Related tickets',\n'__NEWLINE__',\n'__NBSP__',\n'<small>__Description__</small>',\n'<small>__CreatedRelative__</small>',\n'<small>__LastUpdatedRelative__</small>',\n'<small>__Contacts__</small>'",
+            "Order" : "ASC|ASC|ASC|ASC",
+            "OrderBy" : "Name|||",
+            "Query" : "Catalog = 'AWS Resources' AND Status = '__Active__'",
+            "RowsPerPage" : "50"
+         },
+         "Name" : "Active Assets",
+         "Type" : "Asset",
+         "Object" : "RT::System"
       },
       {
          "Content" : {
             "Format" : "'<a href=\"__WebPath__/Asset/Display.html?id=__id__\">__id__</a>/TITLE:#',\n'<a href=\"__WebHomePath__/Asset/Display.html?id=__id__\">__Name__</a>/TITLE:Name',\nCatalog,\n'__CustomFieldView.{Region}__',\n'__CustomFieldView.{Instance Type}__',\n'__CustomFieldView.{Reservation Start}__',\n'__CustomFieldView.{Reservation End}__',\n'__CustomFieldView.{Service Type}__',\n'__CustomFieldView.{Product Description}__',\n'<a href=\"__WebPath__/AWS/LinkAsset.html?id=__id__\" target=\"_blank\">Link to Resource</a>/TITLE:Link to Resource'",
-            "ObjectType" : "",
             "Order" : "ASC|ASC|ASC|ASC",
             "OrderBy" : "CustomField.{Service Type}|||",
             "Query" : "Catalog = 'AWS Reserved Instances' AND DependedOnBy IS NULL AND CF.{State} = 'active'",
-            "RowsPerPage" : "50",
-            "SearchType" : "Asset"
+            "RowsPerPage" : "50"
          },
-         "ContentType" : "storable",
-         "Description" : "Unlinked AWS Reservations",
-         "Name" : "SavedSearch",
+         "Type" : "Asset",
+         "Name" : "Unlinked AWS Reservations",
          "Object" : "RT::System"
       }
    ],
