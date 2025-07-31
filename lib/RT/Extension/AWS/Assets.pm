@@ -609,6 +609,7 @@ sub UpdateAWSAssets {
             UpdateAWSAsset( AssetObj => $asset, PawsObj => $instance,
                 Service => $args{'ServiceType'}, ReservedInstances => $args{'ReservedInstances'});
             RT->Logger->debug('Updated asset ' . $asset->Id . ' ' . $asset->Name);
+            $args{updated}{$asset->Id} = 1 if $args{updated};
         }
     }
     return;
