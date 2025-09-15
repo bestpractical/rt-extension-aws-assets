@@ -55,7 +55,8 @@ if ( $ARGS{'SelectedAsset'} ) {
 # for RDS: Region, Service Type, Instance Type, Engine
 
 $Query = "Catalog = '" . RT->Config->Get('AWSAssetsInstanceCatalog')
-    . "' AND 'CF.{Region}' = '" . $AssetObj->FirstCustomFieldValue('Region')
+    . "' AND Status = '__Active__'"
+    . "  AND 'CF.{Region}' = '" . $AssetObj->FirstCustomFieldValue('Region')
     . "' AND 'CF.{Service Type}' = '" . $AssetObj->FirstCustomFieldValue('Service Type')
     . "' AND 'CF.{Instance Type}' = '" . $AssetObj->FirstCustomFieldValue('Instance Type') . "'";
 
