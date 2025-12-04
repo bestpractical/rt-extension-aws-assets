@@ -163,6 +163,7 @@ sub ReloadFromAWS {
     my $reserved = shift;
 
     my $res_obj = FetchSingleAssetFromAWS(
+                      AssetObj => $asset,
                       AWSID => $asset->FirstCustomFieldValue("$asset_id_cf"),
                       ServiceType => $asset->FirstCustomFieldValue('Service Type'),
                       Region => $asset->FirstCustomFieldValue('Region'),
@@ -188,9 +189,6 @@ sub AWSCredentials {
 sub FetchSingleAssetFromAWS {
     my %args = @_;
 
-    # Filtering not working now, will fix later
-    return;
-
     unless ( $args{'AWSID'} ) {
         RT->Logger->error('RT-Extension-AWS-Assets: No AWS ID found.');
         return;
@@ -198,6 +196,11 @@ sub FetchSingleAssetFromAWS {
 
     unless ( $args{'ServiceType'}) {
         RT->Logger->error('RT-Extension-AWS-Assets: No Service Type found.');
+        return;
+    }
+
+    if ( $args{'ServiceType'} eq 'RDS' && !$args{'ReservedInstances'} && !$args{AssetObj} ) {
+        RT->Logger->error('RT-Extension-AWS-Assets: AssetObj is required for RDS assets.');
         return;
     }
 
@@ -215,7 +218,7 @@ sub FetchSingleAssetFromAWS {
 
                 # No paging for reserved instance API
                 my $res = $service->DescribeReservedInstances(ReservedInstancesIds => [$args{'AWSID'}]);
-                $instance_obj = $res->Reservations->[0]->Instances->[0];
+                $instance_obj = $res->ReservedInstances->[0];
             };
         }
         else {
@@ -231,10 +234,8 @@ sub FetchSingleAssetFromAWS {
             eval {
                 my $service = Paws->service($args{'ServiceType'}, credentials => $credentials, region => $args{'Region'});
 
-                # The RDS version does have paging, but leaving it out for consistency with EC2
-                # Set Max to the Max allowed. Will need to update when we go over 100 in a region
-                my $res = $service->DescribeReservedDBInstances(ReservedDBInstanceId => $args{'AWSID'});
-                $instance_obj = $res->ReservedDBInstances;
+                my $res = $service->DescribeReservedDBInstances(LeaseId => $args{'AWSID'});
+                $instance_obj = $res->ReservedDBInstances->[0];
             };
         }
         else {
@@ -242,8 +243,8 @@ sub FetchSingleAssetFromAWS {
                 my $service = Paws->service($args{'ServiceType'}, credentials => $credentials, region => $args{'Region'});
                 # Doesn't work now, not sure why, Values are passed as null
 #                my $res = $service->DescribeDBInstances(Filters => [{ Name => 'dbi-resource-id', Values => ["foo", "bar"] }]);
-                my $res = $service->DescribeDBInstances(DBInstanceIdentifier => );
-                $instance_obj = $res->DBInstances;
+                my $res = $service->DescribeDBInstances(DBInstanceIdentifier => $args{'AssetObj'}->Name);
+                $instance_obj = $res->DBInstances->[0];
             };
         }
     }
