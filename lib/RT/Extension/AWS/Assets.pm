@@ -453,6 +453,7 @@ sub InsertAWSAssets {
     my $asset_id_cf = 'AWS ID';
     $asset_id_cf = 'AWS Reserved Instance ID' if $args{'ReservedInstances'};
 
+    my @assets;
     for my $resource ( @{ $args{'AWSResources'} } ) {
         my $resource_id;
         my $instance;
@@ -491,9 +492,11 @@ sub InsertAWSAssets {
         $asset_exists = 1 if $assets->Count >= $count;
 
         # Asset already exists, next
-        RT->Logger->debug("Asset for " . $resource_id . " exists, skipping")
-            if $asset_exists;
-        next if $asset_exists;
+        if ( $asset_exists ) {
+            RT->Logger->debug("Asset for " . $resource_id . " exists, skipping");
+            push @assets, $assets->First;
+            next;
+        }
 
         # Create an empty asset to more easily load the CF ids
         my $void_asset = RT::Asset->new($args{'CurrentUser'});
@@ -547,9 +550,10 @@ sub InsertAWSAssets {
             # Call UpdateAWSAsset to load remaining CFs
             UpdateAWSAsset( AssetObj => $new_asset, PawsObj => $instance,
                 Service => $args{'ServiceType'}, ReservedInstances => $args{'ReservedInstances'});
+            push @assets, $new_asset;
         }
     }
-    return;
+    return @assets;
 }
 
 sub UpdateAWSAssets {
