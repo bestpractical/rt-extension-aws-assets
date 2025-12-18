@@ -5,8 +5,6 @@ package RT::Extension::AWS::Assets;
 use Paws;
 use Paws::Credential::Explicit;
 
-use Data::Printer;
-
 our $VERSION = '0.06';
 
 =head1 NAME
