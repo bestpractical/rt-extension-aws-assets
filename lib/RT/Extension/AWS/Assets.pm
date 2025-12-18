@@ -7,7 +7,7 @@ use Paws::Credential::Explicit;
 
 use Data::Printer;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 =head1 NAME
 
