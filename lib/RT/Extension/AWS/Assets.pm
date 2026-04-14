@@ -432,7 +432,16 @@ sub UpdateAWSAsset {
             ($ret, $msg) = $asset->AddCustomFieldValue( Field => $cf_name, Value => "Linux/UNIX" );
         }
         else {
-            ($ret, $msg) = $asset->AddCustomFieldValue( Field => $cf_name, Value => $paws_obj->$method );
+            my $new_value = $paws_obj->$method;
+            if ( defined $new_value && length $new_value ) {
+                ( $ret, $msg ) = $asset->AddCustomFieldValue( Field => $cf_name, Value => $new_value );
+            }
+            elsif ( defined( my $old_value = $asset->FirstCustomFieldValue($cf_name) ) ) {
+                ( $ret, $msg ) = $asset->DeleteCustomFieldValue( Field => $cf_name, Value => $old_value );
+            }
+            else {
+                next;
+            }
         }
 
         if ( $msg && $msg =~ /That is already the current value/ ) {
