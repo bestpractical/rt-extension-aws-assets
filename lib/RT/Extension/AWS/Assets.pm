@@ -309,10 +309,17 @@ sub FetchMultipleAssetsFromAWS {
             eval {
                 my $service = Paws->service($args{'ServiceType'}, credentials => $credentials, region => $args{'Region'});
 
-                # The RDS version does have paging, but leaving it out for consistency with EC2
-                # Set Max to the Max allowed. Will need to update when we go over 100 in a region
-                $res = $service->DescribeReservedDBInstances(MaxRecords => 100);
+                if ( $args{'Token'} ) {
+                    $res = $service->DescribeReservedDBInstances(
+                        MaxRecords => $args{'MaxResults'},
+                        Marker     => $args{'Token'},
+                    );
+                }
+                else {
+                    $res = $service->DescribeReservedDBInstances( MaxRecords => $args{'MaxResults'} );
+                }
                 $aws_resources = $res->ReservedDBInstances;
+                $token         = $res->Marker;
             };
         }
         else {
