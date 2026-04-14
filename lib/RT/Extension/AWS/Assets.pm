@@ -622,7 +622,7 @@ sub UpdateAWSAssets {
         # New purchased reserved db instance's Lease ID could be empty
         if ( !$asset_found && $args{'ServiceType'} eq 'RDS' && $args{'ReservedInstances'} ) {
             my $name = $resource->ReservedDBInstanceId;
-            $assets->FromSQL(qq<Catalog = '$catalog' AND 'CF.{$asset_id_cf}' IS NULL AND Name = '$name'>);
+            $assets->FromSQL(qq<Catalog = '$catalog' AND 'CF.{$asset_id_cf}.Content' IS NULL AND Name = '$name'>);
             $asset_found = 1 if $assets->Count;
         }
 
