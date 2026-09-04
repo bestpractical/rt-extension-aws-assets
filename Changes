@@ -1,5 +1,8 @@
 Revision history for RT-Extension-AWS-Assets
 
+0.09 2026-09-04
+ - Set Region on reservations purchased from the web UI
+
 0.08 2026-04-14
  - Resolve reserved RDS instance sync failure
  - Support paging reserved RDS instances

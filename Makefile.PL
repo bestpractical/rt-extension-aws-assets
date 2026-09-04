@@ -1,4 +1,4 @@
-use lib '.';
+BEGIN { push @INC, q[.] }
 use inc::Module::Install;
 
 RTx     'RT-Extension-AWS-Assets';

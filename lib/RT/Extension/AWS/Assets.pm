@@ -5,7 +5,7 @@ package RT::Extension::AWS::Assets;
 use Paws;
 use Paws::Credential::Explicit;
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 =head1 NAME
 
