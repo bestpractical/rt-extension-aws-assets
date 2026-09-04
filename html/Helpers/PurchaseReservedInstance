@@ -85,6 +85,7 @@ else {
 if ( $resource ) {
     my ($reserved_asset) = RT::Extension::AWS::Assets::InsertAWSAssets(
         ServiceType       => $type,
+        Region            => $region,
         ReservedInstances => 1,
         AWSResources      => [$resource],
         CurrentUser       => $session{CurrentUser},
