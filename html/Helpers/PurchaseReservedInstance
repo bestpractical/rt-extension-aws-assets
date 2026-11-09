@@ -52,11 +52,13 @@ if ( $type eq 'EC2' ) {
 }
 else {
     if ( $ARGS{ReservedDBInstancesOfferingId} ) {
+        ( my $reserved_db_instance_id = $ARGS{ReservedDBInstanceId} // '' ) =~ s/^\s+|\s+$//g;
         my $result;
         eval {
             $result = $service->PurchaseReservedDBInstancesOffering(
                 DBInstanceCount               => 1,
                 ReservedDBInstancesOfferingId => $ARGS{ReservedDBInstancesOfferingId},
+                length $reserved_db_instance_id ? ( ReservedDBInstanceId => $reserved_db_instance_id ) : (),
             );
         };
 
